@@ -2,14 +2,14 @@ import sqlite3
 
 conn = sqlite3.connect('nyondo_stock.db')
 
-# ✅ SAFE search using parameterized query
+
 def search_product_safe(name):
     query = "SELECT * FROM products WHERE name LIKE ?"
     param = f"%{name}%"
     rows = conn.execute(query, (param,)).fetchall()
     return rows
 
-# ✅ SAFE login using parameterized query
+
 def login_safe(username, password):
     query = "SELECT * FROM users WHERE username=? AND password=?"
     row = conn.execute(query, (username, password)).fetchone()

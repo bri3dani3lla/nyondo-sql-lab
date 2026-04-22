@@ -263,6 +263,6 @@ When we use f-strings, we directly insert what the user types into the SQL query
  so it runs everything as part of the query. That is why attacks like ' OR 1=1-- can trick the system and return all data or bypass login.
 When we use ? placeholders, the database treats the user input as data only, not as part of the SQL command.
  This means even if someone types malicious input, it will not be executed as SQL code. Instead, it is handled safely like normal text.
-Because of this, parameterized queries protect the system from SQL injection and keep the database secure.SS
+Because of this, parameterized queries protect the system from SQL injection and keep the database secure.
 
 screenshots/task4.png
