@@ -1,0 +1,24 @@
+import sqlite3
+
+conn = sqlite3.connect('nyondo_stock.db')
+
+# ✅ SAFE search using parameterized query
+def search_product_safe(name):
+    query = "SELECT * FROM products WHERE name LIKE ?"
+    param = f"%{name}%"
+    rows = conn.execute(query, (param,)).fetchall()
+    return rows
+
+# ✅ SAFE login using parameterized query
+def login_safe(username, password):
+    query = "SELECT * FROM users WHERE username=? AND password=?"
+    row = conn.execute(query, (username, password)).fetchone()
+    return row
+
+# Tests (should all FAIL safely)
+print('Test 1:', search_product_safe("' OR 1=1--"))
+print('Test 2:', search_product_safe("' UNION SELECT id,username,password,role FROM users--"))
+print('Test 3:', login_safe("admin'--", 'anything'))
+print('Test 4:', login_safe("' OR '1'='1", "' OR '1'='1"))
+
+conn.close()

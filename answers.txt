@@ -224,3 +224,45 @@ screenshots/task3_attack1.png
 screenshots/task3_attack2.png
 screenshots/task3_attack3.png
 screenshots/task3_attack4.png
+
+TASK 4
+
+import sqlite3
+
+conn = sqlite3.connect('nyondo_stock.db')
+
+# ✅ SAFE search using parameterized query
+def search_product_safe(name):
+    query = "SELECT * FROM products WHERE name LIKE ?"
+    param = f"%{name}%"
+    rows = conn.execute(query, (param,)).fetchall()
+    return rows
+
+# ✅ SAFE login using parameterized query
+def login_safe(username, password):
+    query = "SELECT * FROM users WHERE username=? AND password=?"
+    row = conn.execute(query, (username, password)).fetchone()
+    return row
+
+# Tests (should all FAIL safely)
+print('Test 1:', search_product_safe("' OR 1=1--"))
+print('Test 2:', search_product_safe("' UNION SELECT id,username,password,role FROM users--"))
+print('Test 3:', login_safe("admin'--", 'anything'))
+print('Test 4:', login_safe("' OR '1'='1", "' OR '1'='1"))
+
+conn.close()
+
+Test 1: []
+Test 2: []
+Test 3: None
+Test 4: None
+
+Explanation
+When we use f-strings, we directly insert what the user types into the SQL query.
+ This is dangerous because the database cannot tell the difference between normal input and malicious code, 
+ so it runs everything as part of the query. That is why attacks like ' OR 1=1-- can trick the system and return all data or bypass login.
+When we use ? placeholders, the database treats the user input as data only, not as part of the SQL command.
+ This means even if someone types malicious input, it will not be executed as SQL code. Instead, it is handled safely like normal text.
+Because of this, parameterized queries protect the system from SQL injection and keep the database secure.SS
+
+screenshots/task4.png
